@@ -1,0 +1,30 @@
+global
+    log /dev/log local0
+    maxconn 2048
+    user haproxy
+    group haproxy
+    daemon
+    tune.ssl.default-dh-param 2048
+
+defaults
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    timeout connect 5000
+    timeout client 50000
+    timeout server 50000
+
+frontend haproxy-http
+    bind *:80
+    default_backend webservers-backend
+
+frontend haproxy-https
+    bind *:443 ssl crt /etc/haproxy/certs/www.davidlael.tech.pem
+    http-request set-header X-Forwarded-Proto https
+    default_backend webservers-backend
+
+backend webservers-backend
+    balance roundrobin
+    server 7379-web-01 18.171.52.4:80 check
+    server 7379-web-02 18.171.148.55:80 check
